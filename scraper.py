@@ -1,38 +1,28 @@
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 def get_course_name(driver):
-    return driver.find_element(By.TAG_NAME, "h2").text
+    title = WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "h1, h2"))
+    )
+    return title.text
 
 
 def get_lessons(driver):
     lessons = []
-    elements = driver.find_elements(By.TAG_NAME, "a")
 
-    seen = set()
+    items = driver.find_elements(By.TAG_NAME, "a")
 
-    for el in elements:
-        href = el.get_attribute("href")
+    for item in items:
+        href = item.get_attribute("href")
+        title = item.text.strip()
 
-        if not href:
-            continue
-
-        if "/aula/" not in href:
-            continue
-
-        if href in seen:
-            continue
-
-        seen.add(href)
-
-        title = el.text.strip()
-
-        if not title:
-            continue
-
-        lessons.append({
-            "title": title,
-            "url": href
-        })
+        if href and "/aula/" in href and title:
+            lessons.append({
+                "title": title,
+                "url": href
+            })
 
     return lessons

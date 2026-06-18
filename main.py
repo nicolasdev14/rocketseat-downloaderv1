@@ -16,43 +16,53 @@ def run_downloader(course_url, cookies):
     print("Abrindo curso...")
     driver.get(course_url)
 
-    input("Quando carregar tudo, pressione ENTER...")
+    input("Faça login (se precisar) e pressione ENTER...")
 
     course_name = sanitize(get_course_name(driver))
-    course_path = os.path.join("downloads", course_name)
+    print(f"Curso encontrado: {course_name}")
 
+    course_path = os.path.join("downloads", course_name)
     os.makedirs(course_path, exist_ok=True)
 
     lessons = get_lessons(driver)
 
-    for index, lesson in enumerate(lessons, start=1):
-        if lesson["url"] in progress["completed"]:
-            print(f"Pulando: {lesson['title']}")
-            continue
+    print(f"{len(lessons)} aulas encontradas")
 
-        print(f"Baixando {lesson['title']}")
+    if len(lessons) == 0:
+        print("Nenhuma aula encontrada.")
+        driver.quit()
+        return
+
+    total = len(lessons)
+
+    for index, lesson in enumerate(lessons, start=1):
+        print(f"\n[{index}/{total}] {lesson['title']}")
+
+        if lesson["url"] in progress["completed"]:
+            print("Já baixado, pulando...")
+            continue
 
         driver.get(lesson["url"])
 
-        input("Espere carregar o vídeo e pressione ENTER...")
+        input("Quando o vídeo carregar, pressione ENTER...")
 
         m3u8 = get_m3u8(driver)
 
         if not m3u8:
-            print("m3u8 não encontrado")
+            print("M3U8 não encontrado")
             continue
 
-        filename = f"{index:02d} - {sanitize(lesson['title'])}.%(ext)s"
+        filename = f"{index:02d} - {sanitize(lesson['title'])}.mp4"
         output = os.path.join(course_path, filename)
 
+        print("Baixando vídeo...")
         download_video(m3u8, output)
 
         progress["completed"].append(lesson["url"])
         save_progress(progress)
 
+        percent = (index / total) * 100
+        print(f"Progresso: {percent:.1f}%")
+
     driver.quit()
-    print("Finalizado.")
-
-
-if __name__ == "__main__":
-    print("Execute pelo app.py")
+    print("\nDownload finalizado.")
