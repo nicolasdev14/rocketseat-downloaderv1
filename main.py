@@ -3,10 +3,9 @@ from auth import create_driver, inject_cookies
 from scraper import get_course_name, get_lessons
 from downloader import get_m3u8, download_video
 from utils import sanitize, load_progress, save_progress
+
+
 def run_downloader(course_url, cookies):
-
-
-def main():
     progress = load_progress()
 
     driver = create_driver()
@@ -56,4 +55,4 @@ def main():
 
 
 if __name__ == "__main__":
-    pass
+    print("Execute pelo app.py")
